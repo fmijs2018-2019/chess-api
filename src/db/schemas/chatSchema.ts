@@ -1,9 +1,10 @@
 import * as mongoose from 'mongoose';
-import { IChatEvent } from '../../interfaces/events/IChatEvent';
+import { IMessage } from '../interfaces/IMessage';
 
-export interface IChatModel extends IChatEvent, mongoose.Document {}
+export interface IChatModel extends IMessage, mongoose.Document {}
 
 export const chatSchema = new mongoose.Schema({
+	room: String,
     sender: String,
     message: String,
 });

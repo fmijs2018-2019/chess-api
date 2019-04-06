@@ -1,13 +1,16 @@
+import { IMove } from "./IMove";
+import { IMessage } from "./IMessage";
+
 export interface IMatch {
-    moves: [{}],
-    chats: [{}],
-    result: string,
-    totalTime: number,
-    whiteP: string,
-    blackP: string,
-    startTime: Date,
-    endTime: Date,
+    moves: IMove[],
+    chats: IMessage[],
+    result?: string,
+    totalTime?: number,
+    whiteP?: string,
+    blackP?: string,
+    startTime?: Date,
+    endTime?: Date,
     isLive: boolean,
     isFinalized: boolean,
-    winner: string
+    winner?: string
 };

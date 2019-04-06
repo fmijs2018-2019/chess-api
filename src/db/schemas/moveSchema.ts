@@ -4,6 +4,7 @@ import { IMove } from '../interfaces/IMove';
 export interface IMoveModel extends IMove, mongoose.Document {}
 
 export const moveSchema = new mongoose.Schema({
+	room: String,
     playerId: String,
     source: String,
     dest: String,

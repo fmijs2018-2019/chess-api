@@ -1,4 +1,6 @@
-export interface IMove {
+import { IEvent } from "./IEvent";
+
+export interface IMove extends IEvent {
     playerId: string,
     source: string,
     dest: string,
