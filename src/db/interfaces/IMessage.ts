@@ -1,6 +1,7 @@
 import { IEvent } from "./IEvent";
+import { IProfile } from "../../models/auth/IProfilePayload";
 
 export interface IMessage extends IEvent {
-	sender: string,
+	sender: IProfile,
 	message: string
 }

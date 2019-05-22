@@ -1,10 +1,22 @@
 import mongoose, { Schema } from 'mongoose';
-import { IMatchModel, Match } from './schemas/matchSchema';
+import { Match } from './schemas/matchSchema';
+import { MatchMoves } from './schemas/matchMovesSchema';
+import { MatchChat } from './schemas/matchChatSchema';
 
 const host = process.env.HOSTNAME;
 const name = process.env.DBNAME;
 const port = process.env.DBPORT;
 
-mongoose.connect(`mongodb://${host}:${port}/${name}`, { useNewUrlParser: true });
+mongoose.connect(`mongodb://${host}:${port}/${name}`, { useNewUrlParser: true })
+	.then(res => {
+		console.log("Connected to Mongodb!");
+	}).catch(err => {
+		console.log(err);
+	});;
 
-export const db = mongoose.connection;
+export const db = {
+	connection: mongoose.connection,
+	MatchMoves,
+	MatchChat,
+	Match
+};

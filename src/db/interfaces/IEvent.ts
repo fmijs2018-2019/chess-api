@@ -1,6 +1,8 @@
+import * as mongoose from 'mongoose';
+import { Guid } from 'guid-typescript';
+
 export interface IEvent {
-	// id: string;
+	id: string;
 	type: string;
-	serverTime: number;
-	room: string;
+	serverTime: string;
 }

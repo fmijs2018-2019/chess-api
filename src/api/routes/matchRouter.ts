@@ -1,11 +1,11 @@
 import express from 'express';
 import matchController from '../controllers/matchController';
-import { checkJwt } from '../../checkJwt';
+import { checkJwt } from '../../common/checkJwt';
 
 const matchRouter = express.Router();
 
 matchRouter.post('/:id/join', checkJwt, matchController.joinMatch);
-matchRouter.get('', checkJwt, matchController.getAll);
+matchRouter.get('/:id', checkJwt, matchController.getById);
 matchRouter.post('/create', checkJwt, matchController.createMatch);
 
 export default matchRouter;

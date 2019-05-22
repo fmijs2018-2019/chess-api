@@ -1,87 +1,103 @@
 import express from 'express';
 import { Guid } from "guid-typescript";
-import { IApiResult } from '../../models/apiResult';
-import { profilePayload } from '../..';
 import errors from '../../common/errors';
 import { IMatch } from '../../db/interfaces/IMatch';
-import { liveMatches } from '../../liveMatches';
-import { PiecesColors } from '../../models/pieces';
+import { apiHelpers } from '../../common/apiHelpers';
+import { chessHelpers } from '../../common/chessHelpers';
+import { chessFactory } from '../../common/chessFactory';
+import { db } from '../../db';
 
 export default {
 	createMatch: (req: express.Request, res: express.Response) => {
-		const senderId = profilePayload && profilePayload.sub;
+		const user = apiHelpers.getProfilePayload(req);
 		const orientation = req.body['orientation'];
 
-		if (!orientation) {
-			//error
-		}
-
-		if (!senderId) {
-			const error: IApiResult<any> = { isSuccess: false, error: errors.invalidSender }
-			res.status(401).send(error);
+		if (!(orientation && chessHelpers.piecesColors[orientation])) {
+			res.send(400);
 			return;
 		}
 
-		const uid = Guid.create().toString();
-		const newMatch: IMatch = {
-			moves: [],
-			chats: [],
-			whiteP: orientation == PiecesColors.white ? senderId : undefined,
-			blackP: orientation == PiecesColors.black ? senderId : undefined,
-			isLive: false,
-			isFinalized: false,
-		};
-		liveMatches[uid] = { match: newMatch, connectedPlayers: 1, fen: 'start' };
-		orientation === PiecesColors.white ? liveMatches[uid].match.whiteP = senderId : liveMatches[uid].match.blackP = senderId;
-		const result: IApiResult<any> = { data: { matchId: uid }, isSuccess: true };
-		console.log(liveMatches[uid]);
-		res.status(201).send(result);
+		if (!user) {
+			res.send(400);
+			return;
+		}
+
+		const whiteP = orientation == chessHelpers.piecesColors.white ? user.sub : undefined;
+		const blackP = orientation == chessHelpers.piecesColors.black ? user.sub : undefined;
+		const match = chessFactory.createMatch(whiteP, blackP);
+
+		db.Match.create(match)
+			.then(m => {
+				res.status(201).send(match);
+			}).catch(err => {
+				// todo: handle error
+				res.send(400);
+			});
 	},
 
 	joinMatch: (req: express.Request, res: express.Response) => {
 		const matchId = req.params['id'];
-		const senderId = profilePayload && profilePayload.sub;
+		const user = apiHelpers.getProfilePayload(req);
 
 		if (!matchId) {
-			const error: IApiResult<any> = { isSuccess: false, error: errors.matchNotFound }
-			res.status(400).send(error);
+			res.send(400);
 			return;
 		}
 
-		if (!senderId) {
-			const error: IApiResult<any> = { isSuccess: false, error: errors.invalidSender }
-			res.status(400).send(error);
+		if (!user) {
+			res.send(400);
 			return;
 		}
 
-		const liveMatch = liveMatches[matchId];
+		const findMatchPromise = db.Match.findById(matchId);
+		findMatchPromise.then(m => {
+			if (m) {
+				if(m.blackP && m.whiteP) {
+					res.send(400);
+				}
 
-		if (!liveMatch) {
-			const error: IApiResult<any> = { isSuccess: false, error: errors.matchNotFound }
-			res.status(404).send(error);
-			return;
-		}
+				m.blackP = m.blackP || user.sub;
+				m.whiteP = m.whiteP || user.sub;
 
-		liveMatch.connectedPlayers++;
-
-		if (liveMatch.match.whiteP !== senderId && !liveMatch.match.blackP) {
-			liveMatch.match.blackP = senderId;
-		} else if (!liveMatch.match.whiteP && liveMatch.match.blackP !== senderId) {
-			liveMatch.match.whiteP = senderId;
-		}
-
-		console.log(liveMatch);
-		const result: IApiResult<any> = { isSuccess: true, data: { fen: liveMatch.fen } };
-		res.status(200).send(result);
+				m.save().then(m => {
+					res.status(200).send(m);
+				}).catch(e => {
+					res.send(400);
+				});
+			} else {
+				res.send(404);
+			}
+		});
+		findMatchPromise.catch(e => {
+			res.send(400);
+		});
 	},
 
-	getAll: (req: express.Request, res: express.Response) => {
-		const result: IApiResult<any> = {
-			data: {
-				liveMatches
-			},
-			isSuccess: true
+	getById: (req: express.Request, res: express.Response) => {
+		const matchId = req.params['id'];
+		const user = apiHelpers.getProfilePayload(req);
+
+		if (!matchId) {
+			res.send(400);
+			return;
 		}
-		res.status(200).send(result);
+
+		if (!user) {
+			res.send(400);
+			return;
+		}
+
+		db.Match.findById(matchId)
+			.then(m => {
+				if (!m) {
+					res.send(404);
+				} else if (m.whiteP !== user.sub && m.blackP !== user.sub) {
+					res.send(400);
+				} else {
+					res.status(200).send(m);
+				}
+			}).catch(e => {
+				res.send(400);
+			});
 	}
 }
