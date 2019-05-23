@@ -1,7 +1,4 @@
 import express from 'express';
-import { Guid } from "guid-typescript";
-import errors from '../../common/errors';
-import { IMatch } from '../../db/interfaces/IMatch';
 import { apiHelpers } from '../../common/apiHelpers';
 import { chessHelpers } from '../../common/chessHelpers';
 import { chessFactory } from '../../common/chessFactory';
@@ -27,9 +24,9 @@ export default {
 		const match = chessFactory.createMatch(whiteP, blackP);
 
 		db.Match.create(match)
-			.then(m => {
+			.then(() => {
 				res.status(201).send(match);
-			}).catch(err => {
+			}).catch(() => {
 				// todo: handle error
 				res.send(400);
 			});
@@ -61,14 +58,14 @@ export default {
 
 				m.save().then(m => {
 					res.status(200).send(m);
-				}).catch(e => {
+				}).catch(() => {
 					res.send(400);
 				});
 			} else {
 				res.send(404);
 			}
 		});
-		findMatchPromise.catch(e => {
+		findMatchPromise.catch(() => {
 			res.send(400);
 		});
 	},
@@ -96,7 +93,7 @@ export default {
 				} else {
 					res.status(200).send(m);
 				}
-			}).catch(e => {
+			}).catch(() => {
 				res.send(400);
 			});
 	}

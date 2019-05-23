@@ -3,9 +3,9 @@ export interface IPieceColor {
 	black: string
 }
 
-export interface IDictionary { [index: string]: string }
+export interface IDictionary<T> { [index: string]: T }
 
-const piecesColors: IDictionary & IPieceColor = {
+const piecesColors: IDictionary<string> & IPieceColor = {
 	white: 'white',
 	black: 'black'
 }
