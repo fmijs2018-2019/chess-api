@@ -63,7 +63,7 @@ lobbyNsp.on('connection', function (socket) {
 		challengeService.addChallenge(newChallenge);
 
 		if (fn) {
-			fn(newChallenge.id);
+			fn(newChallenge);
 		}
 
 		socket.broadcast.emit(lobbyEvents.onChallengeCreate, newChallenge);
