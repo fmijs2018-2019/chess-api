@@ -46,10 +46,12 @@ const lobbyEvents = {
 
 const lobbyNsp = io.of('/lobby');
 lobbyNsp.on('connection', function (socket) {
+	console.log('user connected');
+
 	// user connected
 	socket.emit(lobbyEvents.getChallenges, challengeService.challenges);
 
-	socket.on(lobbyEvents.createChallenge, function (challenge) {
+	socket.on(lobbyEvents.createChallenge, function (challenge, fn) {
 		const newChallenge: IChallenge = {
 			id: Guid.create().toString(),
 			socketId: socket.id,
@@ -57,13 +59,20 @@ lobbyNsp.on('connection', function (socket) {
 			time: challenge.time,
 			pieces: challenge.pieces,
 		}
-		challengeService.addChallenge(challenge);
+		console.log('challenge created', newChallenge);
+		challengeService.addChallenge(newChallenge);
+
+		if (fn) {
+			fn(newChallenge.id);
+		}
+
 		socket.broadcast.emit(lobbyEvents.onChallengeCreate, newChallenge);
 	});
 
 	socket.on(lobbyEvents.removeChallenge, function (challengeId) {
 		const removed = challengeService.removeById(challengeId);
 		if (removed) {
+			console.log('challenge removed', challengeId);
 			socket.broadcast.emit(lobbyEvents.onChallengeRemove, [challengeId]);
 		}
 	});
@@ -80,6 +89,7 @@ lobbyNsp.on('connection', function (socket) {
 
 			db.Match.create(match)
 				.then((matchDocument) => {
+					console.log('challenge approved', challenge);
 					socket.emit(lobbyEvents.onChallengeApprove, matchDocument.id);
 					lobbyNsp.to(`${challenge.socketId}`).emit(lobbyEvents.onChallengeApprove, matchDocument.id);
 				}).catch(() => {
@@ -89,9 +99,11 @@ lobbyNsp.on('connection', function (socket) {
 	});
 	
 	socket.on('disconnect', function () {
+		console.log('user diconnected');
 		// user disconnected
 		const ids = challengeService.removeAllBySocketId(socket.id);
 		if (ids.length > 0) {
+			console.log('challenge removed', ids);
 			socket.broadcast.emit(lobbyEvents.onChallengeRemove, ids);
 		}
 	});
