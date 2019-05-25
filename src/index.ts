@@ -81,7 +81,7 @@ lobbyNsp.on('connection', function (socket) {
 		const challenge = challengeService.getById(challengeId);
 		if (challenge) {
 			challengeService.removeById(challengeId);
-			socket.broadcast.emit(lobbyEvents.onChallengeRemove, [ challengeId ]);
+			socket.broadcast.emit(lobbyEvents.onChallengeRemove, [challengeId]);
 
 			const blackP = challenge.pieces === chessHelpers.piecesColors.black ? challenge.sub : userId;
 			const whiteP = challenge.pieces === chessHelpers.piecesColors.white ? challenge.sub : userId;
@@ -90,6 +90,11 @@ lobbyNsp.on('connection', function (socket) {
 			db.Match.create(match)
 				.then((matchDocument) => {
 					console.log('challenge approved', challenge);
+
+					// fire and forget for now
+					db.MatchChat.create({ matchId: matchDocument.id, messages: [] });
+					db.MatchMoves.create({ matchId: matchDocument.id, moves: [] });
+
 					socket.emit(lobbyEvents.onChallengeApprove, matchDocument.id);
 					lobbyNsp.to(`${challenge.socketId}`).emit(lobbyEvents.onChallengeApprove, matchDocument.id);
 				}).catch(() => {
@@ -97,7 +102,7 @@ lobbyNsp.on('connection', function (socket) {
 				});
 		}
 	});
-	
+
 	socket.on('disconnect', function () {
 		console.log('user diconnected');
 		// user disconnected
@@ -109,9 +114,25 @@ lobbyNsp.on('connection', function (socket) {
 	});
 });
 
-const matchNsp = io.of('/match');
-matchNsp.on('connection', function (socket) {
+const gameEvents = {
+	joinGame: 'joinGame',
+};
+
+const gameNsp = io.of('/game');
+gameNsp.on('connection', function (socket) {
 	// user connected
+
+	socket.on(gameEvents.joinGame, function (matchId, fn) {
+		socket.join('matchId');
+		db.Match.findById(matchId)
+			.then(doc => {
+				if (doc && fn) {
+					fn(doc);
+				}
+			}).catch(err => {
+				// error
+			})
+	});
 
 	socket.on('disconnect', function () {
 		// user disconnected
