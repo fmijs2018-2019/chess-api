@@ -77,7 +77,7 @@ lobbyNsp.on('connection', function (socket) {
 		}
 	});
 
-	socket.on(lobbyEvents.approveChallenge, function (challengeId, userId) {
+	socket.on(lobbyEvents.approveChallenge, function ({ challengeId, userId }) {
 		const challenge = challengeService.getById(challengeId);
 		if (challenge) {
 			challengeService.removeById(challengeId);

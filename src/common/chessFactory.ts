@@ -5,7 +5,7 @@ export const chessFactory = {
 		return {
 			whiteP: whiteP,
 			blackP: blackP,
-			isLive: false,
+			isLive: true,
 			isFinalized: false,
 		};
 	}
