@@ -1,6 +1,6 @@
 
 export interface IEvent {
-	id: string;
+	// id: string;
 	type: number;
 	serverTime: string;
 }

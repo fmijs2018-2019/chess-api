@@ -122,7 +122,7 @@ const gameEvents = {
 	makeMove: 'makeMove',
 	onMove: 'onMove',
 	sendMesssage: 'sendMessage',
-	receiveMessage: 'receiveMessage',
+	onMessage: 'onMessage',
 };
 
 const gameNsp = io.of('/game');
@@ -130,7 +130,7 @@ gameNsp.on('connection', function (socket) {
 	// user connected
 
 	socket.on(gameEvents.joinGame, function (matchId, fn) {
-		socket.join('matchId');
+		socket.join(matchId);
 		db.Match.findById(matchId)
 			.then(doc => {
 				if (doc && fn) {
@@ -141,10 +141,9 @@ gameNsp.on('connection', function (socket) {
 			})
 	});
 
-	socket.on(gameEvents.makeMove, function ({matchId, move}) {
+	socket.on(gameEvents.makeMove, function ({ matchId, move }) {
 		if (matchId) {
 			const domain: IMove = {
-				id: Guid.create().toString(),
 				playerId: move.playerId,
 				from: move.from,
 				to: move.to,
@@ -160,41 +159,30 @@ gameNsp.on('connection', function (socket) {
 				time: move.time,
 				type: EventType.MoveEvent
 			}
-			db.MatchMoves.update({ MatchId: matchId }, 
-				{ $push: { moves: domain } },
-				(doc) => {
-					if (doc) {
-						socket.broadcast.to(matchId).emit(gameEvents.onMove, doc);
+
+			db.MatchMoves.updateOne({ matchId: matchId },
+				{ $push: { moves: domain } }, {}, (err, res) => {
+					if (res && res.ok) {
+						socket.broadcast.to(matchId).emit(gameEvents.onMove, domain);
 					}
-				}
-			);
+				});
 		}
 	});
 
-	socket.on(gameEvents.sendMesssage, function ({matchId, chatMessage}) {
+	socket.on(gameEvents.sendMesssage, function ({ matchId, chatMessage }) {
 		if (matchId) {
 			const domain: IMessage = {
-				id: Guid.create().toString(),
-				sender: {
-					userId: chatMessage.sender.userId,
-					email: chatMessage.sender.email,
-					family_name: chatMessage.sender.family_name,
-					given_name: chatMessage.sender.given_name,
-					name: chatMessage.sender.name,
-					picture: chatMessage.sender.picture
-				},
+				sender: chatMessage.sender,
 				serverTime: new Date().toUTCString(),
 				type: EventType.MoveEvent,
-				message: chatMessage.message
+				message: chatMessage.message				
 			}
-			db.MatchChat.update({ MatchId: matchId }, 
-				{ $push: { moves: domain } },
-				(doc) => {
-					if (doc) {
-						socket.broadcast.to(matchId).emit(gameEvents.receiveMessage, doc);
+			db.MatchChat.updateOne({ matchId: matchId },
+				{ $push: { messages: domain } }, {}, (err, res) => {
+					if (res && res.ok) {
+						socket.broadcast.to(matchId).emit(gameEvents.onMessage, domain);
 					}
-				}
-			);
+				});
 		}
 	});
 

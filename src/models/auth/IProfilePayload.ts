@@ -15,7 +15,3 @@ export interface IProfile {
 	email?: string;
 	picture?: string;
 }
-
-export interface IUser extends IProfile {
-	userId: string;
-}
