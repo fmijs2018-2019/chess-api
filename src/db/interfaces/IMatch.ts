@@ -27,6 +27,11 @@ export interface IMatchMovesDocument extends IMatchMoves, mongoose.Document {
 
 }
 
+export enum EventType {
+	MessageEvent = 0,
+	MoveEvent = 1,
+}
+
 export interface IMatchChat {
 	matchId: IMatchDocument['_id'],
 	messages: IMessage[]

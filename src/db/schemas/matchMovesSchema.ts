@@ -1,15 +1,22 @@
 import * as mongoose from 'mongoose';
-import { IMatchMoves, IMatchMovesDocument } from '../interfaces/IMatch';
+import { IMatchMovesDocument } from '../interfaces/IMatch';
 
 export const matchMovesSchema = new mongoose.Schema({
 	matchId: mongoose.Schema.Types.ObjectId,
-    playerId: String,
-    source: String,
-    dest: String,
-    piece: String,
-    newFENPos: String,
-    oldFENPos: String,
-    time: Number,
+	moves: [
+		{
+			id: String,
+			type: String,
+			serverTime: String,
+			playerId: String,
+			source: String,
+			dest: String,
+			piece: String,
+			newFENPos: String,
+			oldFENPos: String,
+			time: Number,
+		}
+	],
 });
 
 export const MatchMoves: mongoose.Model<IMatchMovesDocument> = mongoose.model<IMatchMovesDocument>('MatchMoves', matchMovesSchema);

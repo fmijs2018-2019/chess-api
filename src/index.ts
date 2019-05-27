@@ -11,6 +11,9 @@ import { Guid } from 'guid-typescript';
 import { chessFactory } from './common/chessFactory';
 import { chessHelpers } from './common/chessHelpers';
 import { db } from './db';
+import { IMove } from './db/interfaces/IMove';
+import { EventType } from './db/interfaces/IMatch';
+import { IMessage } from './db/interfaces/IMessage';
 
 
 const app = express();
@@ -116,6 +119,10 @@ lobbyNsp.on('connection', function (socket) {
 
 const gameEvents = {
 	joinGame: 'joinGame',
+	makeMove: 'makeMove',
+	onMove: 'onMove',
+	sendMesssage: 'sendMessage',
+	receiveMessage: 'receiveMessage',
 };
 
 const gameNsp = io.of('/game');
@@ -132,6 +139,58 @@ gameNsp.on('connection', function (socket) {
 			}).catch(err => {
 				// error
 			})
+	});
+
+	socket.on(gameEvents.makeMove, function ({matchId, move}) {
+		if (matchId) {
+			const domain: IMove = {
+				id: Guid.create().toString(),
+				playerId: move.playerId,
+				source: move.source,
+				dest: move.dest,
+				newFENPos: move.newFENPos,
+				oldFENPos: move.oldFENPos,
+				piece: move.piece,
+				serverTime: new Date().toUTCString(),
+				time: move.time,
+				type: EventType.MoveEvent
+			}
+			db.MatchMoves.update({ MatchId: matchId }, 
+				{ $push: { moves: domain } },
+				(doc) => {
+					if (doc) {
+						socket.broadcast.to(matchId).emit(gameEvents.onMove, doc);
+					}
+				}
+			);
+		}
+	});
+
+	socket.on(gameEvents.sendMesssage, function ({matchId, chatMessage}) {
+		if (matchId) {
+			const domain: IMessage = {
+				id: Guid.create().toString(),
+				sender: {
+					userId: chatMessage.sender.userId,
+					email: chatMessage.sender.email,
+					family_name: chatMessage.sender.family_name,
+					given_name: chatMessage.sender.given_name,
+					name: chatMessage.sender.name,
+					picture: chatMessage.sender.picture
+				},
+				serverTime: new Date().toUTCString(),
+				type: EventType.MoveEvent,
+				message: chatMessage.message
+			}
+			db.MatchChat.update({ MatchId: matchId }, 
+				{ $push: { moves: domain } },
+				(doc) => {
+					if (doc) {
+						socket.broadcast.to(matchId).emit(gameEvents.receiveMessage, doc);
+					}
+				}
+			);
+		}
 	});
 
 	socket.on('disconnect', function () {
