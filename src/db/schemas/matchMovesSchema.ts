@@ -9,12 +9,17 @@ export const matchMovesSchema = new mongoose.Schema({
 			type: String,
 			serverTime: String,
 			playerId: String,
-			source: String,
-			dest: String,
+			from: String,
+			to: String,
+			color: String,
+			flags: String,
+			san: String,
+			captured: String,
+			promotion: String,
 			piece: String,
 			newFENPos: String,
 			oldFENPos: String,
-			time: Number,
+			time: Number
 		}
 	],
 });
