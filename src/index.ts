@@ -131,11 +131,12 @@ gameNsp.on('connection', function (socket) {
 
 	socket.on(gameEvents.joinGame, function (matchId, fn) {
 		socket.join(matchId);
-		db.Match.findById(matchId)
-			.then(doc => {
-				if (doc && fn) {
-					fn(doc);
-				}
+		var p1 = db.Match.findById(matchId);
+		var p2 = db.MatchMoves.findById(matchId);
+		var p3 = db.MatchChat.findById(matchId);
+		Promise.all([p1, p2, p3])
+			.then(([match, moves, chat]) => {
+				fn(match, moves, chat);
 			}).catch(err => {
 				// error
 			})
