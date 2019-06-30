@@ -49,12 +49,15 @@ const lobbyEvents = {
 
 const lobbyNsp = io.of('/lobby');
 lobbyNsp.on('connection', function (socket) {
-	console.log('user connected');
+	console.log('user connected lobby');
 
 	// user connected
 	socket.emit(lobbyEvents.getChallenges, challengeService.challenges);
 
 	socket.on(lobbyEvents.createChallenge, function (challenge, fn?: any) {
+		if(challengeService.getBySub(challenge.userId)) {
+			return;
+		}
 		const newChallenge: IChallenge = {
 			id: Guid.create().toString(),
 			socketId: socket.id,
@@ -107,13 +110,18 @@ lobbyNsp.on('connection', function (socket) {
 	});
 
 	socket.on('disconnect', function () {
-		console.log('user diconnected');
+		console.log('user diconnected lobby');
+		
 		// user disconnected
 		const ids = challengeService.removeAllBySocketId(socket.id);
 		if (ids.length > 0) {
 			console.log('challenge removed', ids);
 			socket.broadcast.emit(lobbyEvents.onChallengeRemove, ids);
 		}
+	});
+
+	socket.on('forceDisconnect', function(){
+		socket.disconnect();
 	});
 });
 
@@ -247,6 +255,10 @@ gameNsp.on('connection', function (socket) {
 
 	socket.on('disconnect', function () {
 		// user disconnected
+	});
+
+	socket.on('forceDisconnect', function(){
+		socket.disconnect();
 	});
 });
 

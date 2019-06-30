@@ -7,6 +7,7 @@ export const chessFactory = {
 			blackP: blackP,
 			isLive: true,
 			isFinalized: false,
+			startTime: new Date().toUTCString(),
 			totalTime: time,
 			timeExpired: false,
 			isTimeGame: time !== undefined && time !== null && time > 0,

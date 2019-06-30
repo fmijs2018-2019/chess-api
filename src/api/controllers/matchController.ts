@@ -70,6 +70,17 @@ export default {
 		});
 	},
 
+	getAll: (req: express.Request, res: express.Response) => {
+		const user = (req as any).user;
+
+		db.Match.find({ $or: [{ whiteP: user.sub }, { blackP: user.sub }] })
+			.then(m => {
+				res.status(200).send(m);
+			}).catch(() => {
+				res.sendStatus(400);
+			})
+	},
+
 	getById: (req: express.Request, res: express.Response) => {
 		const matchId = req.params['id'];
 		const user = apiHelpers.getProfilePayload(req);
@@ -103,7 +114,7 @@ export default {
 
 		db.MatchMoves.findOne({ matchId: matchId })
 			.then(m => {
-				if(!m) {
+				if (!m) {
 					res.sendStatus(404);
 				} else {
 					res.status(200).send(m.moves);
