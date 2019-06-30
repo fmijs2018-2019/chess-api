@@ -142,7 +142,7 @@ gameNsp.on('connection', function (socket) {
 		socket.join(matchId);
 		var p1 = db.Match.findById(matchId);
 		var p2 = db.MatchMoves.findOne({ matchId });
-		var p3 = db.MatchChat.find({ matchId });
+		var p3 = db.MatchChat.findOne({ matchId });
 		Promise.all([p1, p2, p3])
 			.then(([match, moves, chat]) => {
 				if (fn) {
