@@ -31,6 +31,10 @@ app.use(function (req, res, next) {
 app.use('/matches', matchRouter);
 app.use('/statistics', statisticsRouter);
 
+app.get('/hello', (req, res) => {
+	res.send('Hello World!');
+});
+
 const port = process.env.PORT;
 const host = process.env.HOST;
 const server = new http.Server(app);
@@ -57,7 +61,7 @@ lobbyNsp.on('connection', function (socket) {
 	socket.emit(lobbyEvents.getChallenges, challengeService.challenges);
 
 	socket.on(lobbyEvents.createChallenge, function (challenge, fn?: any) {
-		if(challengeService.getBySub(challenge.userId)) {
+		if (challengeService.getBySub(challenge.userId)) {
 			return;
 		}
 		const newChallenge: IChallenge = {
@@ -113,7 +117,7 @@ lobbyNsp.on('connection', function (socket) {
 
 	socket.on('disconnect', function () {
 		console.log('user diconnected lobby');
-		
+
 		// user disconnected
 		const ids = challengeService.removeAllBySocketId(socket.id);
 		if (ids.length > 0) {
@@ -122,7 +126,7 @@ lobbyNsp.on('connection', function (socket) {
 		}
 	});
 
-	socket.on('forceDisconnect', function(){
+	socket.on('forceDisconnect', function () {
 		socket.disconnect();
 	});
 });
@@ -219,7 +223,7 @@ gameNsp.on('connection', function (socket) {
 		}
 	});
 
-	socket.on(gameEvents.onTimeExpired, function(matchId: string, color: string) {
+	socket.on(gameEvents.onTimeExpired, function (matchId: string, color: string) {
 		if (matchId) {
 			const update = {
 				isFinalized: true,
@@ -259,7 +263,7 @@ gameNsp.on('connection', function (socket) {
 		// user disconnected
 	});
 
-	socket.on('forceDisconnect', function(){
+	socket.on('forceDisconnect', function () {
 		socket.disconnect();
 	});
 });
