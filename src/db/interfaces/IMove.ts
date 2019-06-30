@@ -18,5 +18,6 @@ export interface IMove extends IEvent {
 	inStalemate: boolean,
 	inThreefoldRepetition: boolean,
 	insufficientMaterial: boolean,
-	gameOver: boolean
+	gameOver: boolean,
+	moveMadeAt: string,
 }

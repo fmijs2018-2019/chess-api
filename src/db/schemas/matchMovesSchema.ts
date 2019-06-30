@@ -3,7 +3,7 @@ import { IMatchMovesDocument } from '../interfaces/IMatch';
 
 export const moveSchema = new mongoose.Schema({
 	// id: String,
-	type: String,
+	type: Number,
 	serverTime: String,
 	playerId: String,
 	from: String,
@@ -16,7 +16,15 @@ export const moveSchema = new mongoose.Schema({
 	piece: String,
 	newFENPos: String,
 	oldFENPos: String,
-	time: Number
+	time: Number,
+	inCheck: Boolean,
+	inCheckmate: Boolean,
+	inDraw: Boolean,
+	inStalemate: Boolean,
+	inThreefoldRepetition: Boolean,
+	insufficientMaterial: Boolean,
+	gameOver: Boolean,
+	moveMadeAt: String
 });
 
 export const matchMovesSchema = new mongoose.Schema({

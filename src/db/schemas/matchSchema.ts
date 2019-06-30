@@ -10,7 +10,9 @@ export const matchSchema =  new mongoose.Schema({
     endTime: String,
     isLive: Boolean,
     isFinalized: Boolean,
-    winner: String
+	winner: String,
+	timeExpired: Boolean,
+	isTimeGame: Boolean,
 });
 
 export const Match: mongoose.Model<IMatchDocument> = mongoose.model<IMatchDocument>('Match', matchSchema);

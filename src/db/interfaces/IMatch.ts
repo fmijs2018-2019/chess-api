@@ -11,7 +11,9 @@ export interface IMatch {
     endTime?: string,
     isLive: boolean,
     isFinalized: boolean,
-    winner?: string
+	winner?: string,
+	timeExpired: boolean,
+	isTimeGame: boolean,
 };
 
 export interface IMatchDocument extends IMatch, mongoose.Document {

@@ -2,7 +2,7 @@ import * as mongoose from 'mongoose';
 import { IMatchChatDocument } from '../interfaces/IMatch';
 
 export const matchMessageSchema = new mongoose.Schema({
-	type: String,
+	type: Number,
 	serverTime: String,
 	sender: String, // userId
 	message: String

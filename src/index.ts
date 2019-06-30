@@ -12,7 +12,7 @@ import { chessFactory } from './common/chessFactory';
 import { chessHelpers } from './common/chessHelpers';
 import { db } from './db';
 import { IMove } from './db/interfaces/IMove';
-import { EventType, IMatchChat } from './db/interfaces/IMatch';
+import { EventType, IMatchChat, IMatch } from './db/interfaces/IMatch';
 import { IMessage } from './db/interfaces/IMessage';
 
 
@@ -88,7 +88,7 @@ lobbyNsp.on('connection', function (socket) {
 
 			const blackP = challenge.pieces === chessHelpers.piecesColors.black ? challenge.sub : userId;
 			const whiteP = challenge.pieces === chessHelpers.piecesColors.white ? challenge.sub : userId;
-			const match = chessFactory.createMatch(whiteP, blackP);
+			const match = chessFactory.createMatch(whiteP, blackP, challenge.time);
 
 			db.Match.create(match)
 				.then((matchDocument) => {
@@ -123,6 +123,7 @@ const gameEvents = {
 	onMove: 'onMove',
 	sendMesssage: 'sendMessage',
 	onMessage: 'onMessage',
+	onTimeExpired: 'onTimeExpired',
 };
 
 const gameNsp = io.of('/game');
@@ -166,7 +167,23 @@ gameNsp.on('connection', function (socket) {
 				inDraw: move.inDraw,
 				inStalemate: move.inStalemate,
 				inThreefoldRepetition: move.inThreefoldRepetition,
-				insufficientMaterial: move.insufficientMaterial
+				insufficientMaterial: move.insufficientMaterial,
+				moveMadeAt: move.moveMadeAt,
+			}
+
+			if (domain.gameOver) {
+				const update = {
+					isFinalized: true,
+					isLive: false,
+					winner: domain.inCheckmate ? domain.color : undefined,
+					endTime: new Date().toUTCString()
+				}
+				db.Match.updateOne({ _id: matchId }, { $set: update })
+					.then((value) => {
+						console.log('Match finalized', value);
+					}).catch((err) => {
+						console.log('Finalize match error', err);
+					});
 			}
 
 			db.MatchMoves.updateOne({ matchId: matchId },
@@ -174,6 +191,24 @@ gameNsp.on('connection', function (socket) {
 					if (res && res.ok) {
 						socket.broadcast.to(matchId).emit(gameEvents.onMove, domain);
 					}
+				});
+		}
+	});
+
+	socket.on(gameEvents.onTimeExpired, function(matchId: string, color: string) {
+		if (matchId) {
+			const update = {
+				isFinalized: true,
+				isLive: false,
+				timeExpired: true,
+				winner: color === 'w' ? 'b' : 'w',
+				endTime: new Date().toUTCString()
+			}
+			db.Match.updateOne({ _id: matchId }, { $set: update })
+				.then((value) => {
+					console.log('Match finalized', value);
+				}).catch((err) => {
+					console.log('Finalize match error', err);
 				});
 		}
 	});
