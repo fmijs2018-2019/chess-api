@@ -1,10 +1,10 @@
+require('dotenv-flow').config();
 import bodyParser from 'body-parser';
 import express from 'express';
 import helmet from 'helmet';
 import http from 'http';
 import socketio from 'socket.io';
 import matchRouter from './api/routes/matchRouter';
-import './config';
 import cors = require('cors');
 import { IChallenge, challengeService } from './common/challengeService';
 import { Guid } from 'guid-typescript';
@@ -14,7 +14,6 @@ import { db } from './db';
 import { IMove } from './db/interfaces/IMove';
 import { EventType, IMatchChat, IMatch } from './db/interfaces/IMatch';
 import { IMessage } from './db/interfaces/IMessage';
-
 
 const app = express();
 
@@ -30,7 +29,8 @@ app.use(function (req, res, next) {
 
 app.use('/matches', matchRouter);
 
-const port = process.env.PORT || 8080;
+const port = process.env.PORT;
+const host = process.env.HOST;
 const server = new http.Server(app);
 export const io = socketio.listen(server);
 
@@ -239,4 +239,4 @@ gameNsp.on('connection', function (socket) {
 
 server.listen(port);
 
-console.log(`Server running on http://localhost:${port}`);
+console.log(`Server running on http://${host}:${port}`);
