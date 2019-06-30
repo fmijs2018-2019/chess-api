@@ -49,7 +49,7 @@ export default {
 		const findMatchPromise = db.Match.findById(matchId);
 		findMatchPromise.then(m => {
 			if (m) {
-				if(m.blackP && m.whiteP) {
+				if (m.blackP && m.whiteP) {
 					res.send(400);
 				}
 
@@ -75,26 +75,41 @@ export default {
 		const user = apiHelpers.getProfilePayload(req);
 
 		if (!matchId) {
-			res.send(400);
+			res.sendStatus(400);
 			return;
 		}
 
 		if (!user) {
-			res.send(400);
+			res.sendStatus(400);
 			return;
 		}
 
 		db.Match.findById(matchId)
 			.then(m => {
 				if (!m) {
-					res.send(404);
+					res.sendStatus(404);
 				} else if (m.whiteP !== user.sub && m.blackP !== user.sub) {
-					res.send(400);
+					res.sendStatus(400);
 				} else {
 					res.status(200).send(m);
 				}
 			}).catch(() => {
-				res.send(400);
+				res.sendStatus(400);
+			});
+	},
+
+	getMoves: (req: express.Request, res: express.Response) => {
+		const matchId = req.params['id'];
+
+		db.MatchMoves.findOne({ matchId: matchId })
+			.then(m => {
+				if(!m) {
+					res.sendStatus(404);
+				} else {
+					res.status(200).send(m.moves);
+				}
+			}).catch(() => {
+				res.sendStatus(400);
 			});
 	}
 }

@@ -1,11 +1,11 @@
+import { MatchChat } from './schemas/matchChatSchema';
 import mongoose, { Schema } from 'mongoose';
 import { Match } from './schemas/matchSchema';
 import { MatchMoves } from './schemas/matchMovesSchema';
-import { MatchChat } from './schemas/matchChatSchema';
 
-const host = process.env.HOSTNAME || 'localhost';
-const name = process.env.DBNAME || 'chess';
-const port = process.env.DBPORT || 27017;
+const host = process.env.DBHOSTNAME;
+const name = process.env.DBNAME;
+const port = process.env.DBPORT;
 
 mongoose.connect(`mongodb://${host}:${port}/${name}`, { useNewUrlParser: true })
 	.then(res => {
