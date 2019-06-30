@@ -1,4 +1,4 @@
-import { IMatch } from "../db/interfaces/IMatch";
+import { IMatch, MatchResult } from "../db/interfaces/IMatch";
 
 export const chessFactory = {
 	createMatch: (whiteP?: string, blackP?: string, time?: number): IMatch => {
@@ -9,7 +9,8 @@ export const chessFactory = {
 			isFinalized: false,
 			totalTime: time,
 			timeExpired: false,
-			isTimeGame: time !== undefined && time !== null && time > 0
+			isTimeGame: time !== undefined && time !== null && time > 0,
+			matchResult: MatchResult.NoResult,
 		};
 	}
 }

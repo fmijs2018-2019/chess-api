@@ -12,7 +12,7 @@ import { chessFactory } from './common/chessFactory';
 import { chessHelpers } from './common/chessHelpers';
 import { db } from './db';
 import { IMove } from './db/interfaces/IMove';
-import { EventType, IMatchChat, IMatch } from './db/interfaces/IMatch';
+import { EventType, IMatchChat, IMatch, MatchResult } from './db/interfaces/IMatch';
 import { IMessage } from './db/interfaces/IMessage';
 
 const app = express();
@@ -176,8 +176,22 @@ gameNsp.on('connection', function (socket) {
 					isFinalized: true,
 					isLive: false,
 					winner: domain.inCheckmate ? domain.color : undefined,
-					endTime: new Date().toUTCString()
+					endTime: new Date().toUTCString(),
+					matchResult: MatchResult.NoResult
 				}
+
+				if (domain.inCheckmate) {
+					update.matchResult = MatchResult.Checkmate;
+				} else if (domain.inStalemate) {
+					update.matchResult = MatchResult.Stalemate;
+				} else if (domain.insufficientMaterial) {
+					update.matchResult = MatchResult.InsufficentMaterial;
+				} else if (domain.inThreefoldRepetition) {
+					update.matchResult = MatchResult.ThreefoldRepetition;
+				} else if (domain.inDraw) {
+					update.matchResult = MatchResult.Draw;
+				}
+
 				db.Match.updateOne({ _id: matchId }, { $set: update })
 					.then((value) => {
 						console.log('Match finalized', value);
@@ -202,7 +216,8 @@ gameNsp.on('connection', function (socket) {
 				isLive: false,
 				timeExpired: true,
 				winner: color === 'w' ? 'b' : 'w',
-				endTime: new Date().toUTCString()
+				endTime: new Date().toUTCString(),
+				matchResult: MatchResult.OutOfTime
 			}
 			db.Match.updateOne({ _id: matchId }, { $set: update })
 				.then((value) => {

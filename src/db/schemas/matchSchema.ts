@@ -13,6 +13,7 @@ export const matchSchema =  new mongoose.Schema({
 	winner: String,
 	timeExpired: Boolean,
 	isTimeGame: Boolean,
+	matchResult: Number,
 });
 
 export const Match: mongoose.Model<IMatchDocument> = mongoose.model<IMatchDocument>('Match', matchSchema);
