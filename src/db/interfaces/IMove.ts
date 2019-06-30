@@ -1,16 +1,22 @@
 import { IEvent } from "./IEvent";
 
 export interface IMove extends IEvent {
-    playerId: string, // sub claim from IProfilePayload
-    from: string,
-	to: string,
-	color: string,
-	flags: string,
-	san: string,
-	captured?: string,
-	promotion?: string,
-    piece: string,
     newFENPos: string,
-    oldFENPos: string,
-    time: number,
+	oldFENPos: string,
+	time?: number,
+    color: string;
+    flags: string;
+    piece: string;
+    san: string;
+	captured?: string;
+    from: string;
+    to: string;
+	promotion?: string;
+	inCheck: boolean,
+	inCheckmate: boolean,
+	inDraw: boolean,
+	inStalemate: boolean,
+	inThreefoldRepetition: boolean,
+	insufficientMaterial: boolean,
+	gameOver: boolean
 }
