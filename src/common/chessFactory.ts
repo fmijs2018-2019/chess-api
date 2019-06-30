@@ -7,6 +7,7 @@ export const chessFactory = {
 			blackP: blackP,
 			isLive: true,
 			isFinalized: false,
+			startTime: new Date().toUTCString()		
 		};
 	}
 }
