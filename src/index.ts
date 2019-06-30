@@ -14,6 +14,7 @@ import { db } from './db';
 import { IMove } from './db/interfaces/IMove';
 import { EventType, IMatchChat, IMatch, MatchResult } from './db/interfaces/IMatch';
 import { IMessage } from './db/interfaces/IMessage';
+import statisticsRouter from './api/routes/statisticsRouter';
 
 const app = express();
 
@@ -28,6 +29,7 @@ app.use(function (req, res, next) {
 });
 
 app.use('/matches', matchRouter);
+app.use('/statistics', statisticsRouter);
 
 const port = process.env.PORT;
 const host = process.env.HOST;
