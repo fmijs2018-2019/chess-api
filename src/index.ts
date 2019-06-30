@@ -12,7 +12,7 @@ import { chessFactory } from './common/chessFactory';
 import { chessHelpers } from './common/chessHelpers';
 import { db } from './db';
 import { IMove } from './db/interfaces/IMove';
-import { EventType } from './db/interfaces/IMatch';
+import { EventType, IMatchChat } from './db/interfaces/IMatch';
 import { IMessage } from './db/interfaces/IMessage';
 
 
@@ -54,7 +54,7 @@ lobbyNsp.on('connection', function (socket) {
 	// user connected
 	socket.emit(lobbyEvents.getChallenges, challengeService.challenges);
 
-	socket.on(lobbyEvents.createChallenge, function (challenge, fn) {
+	socket.on(lobbyEvents.createChallenge, function (challenge, fn?: any) {
 		const newChallenge: IChallenge = {
 			id: Guid.create().toString(),
 			socketId: socket.id,
@@ -72,7 +72,7 @@ lobbyNsp.on('connection', function (socket) {
 		socket.broadcast.emit(lobbyEvents.onChallengeCreate, newChallenge);
 	});
 
-	socket.on(lobbyEvents.removeChallenge, function (challengeId) {
+	socket.on(lobbyEvents.removeChallenge, function (challengeId: string) {
 		const removed = challengeService.removeById(challengeId);
 		if (removed) {
 			console.log('challenge removed', challengeId);
@@ -80,7 +80,7 @@ lobbyNsp.on('connection', function (socket) {
 		}
 	});
 
-	socket.on(lobbyEvents.approveChallenge, function ( challengeId, userId ) {
+	socket.on(lobbyEvents.approveChallenge, function (challengeId: string, userId: string) {
 		const challenge = challengeService.getById(challengeId);
 		if (challenge) {
 			challengeService.removeById(challengeId);
@@ -129,23 +129,24 @@ const gameNsp = io.of('/game');
 gameNsp.on('connection', function (socket) {
 	// user connected
 
-	socket.on(gameEvents.joinGame, function (matchId, fn) {
+	socket.on(gameEvents.joinGame, function (matchId: string, fn?: any) {
 		socket.join(matchId);
 		var p1 = db.Match.findById(matchId);
-		var p2 = db.MatchMoves.findById(matchId);
-		var p3 = db.MatchChat.findById(matchId);
+		var p2 = db.MatchMoves.findOne({ matchId });
+		var p3 = db.MatchChat.find({ matchId });
 		Promise.all([p1, p2, p3])
 			.then(([match, moves, chat]) => {
-				fn(match, moves, chat);
+				if (fn) {
+					fn(match, moves, chat);
+				}
 			}).catch(err => {
 				// error
 			})
 	});
 
-	socket.on(gameEvents.makeMove, function ({ matchId, move }) {
+	socket.on(gameEvents.makeMove, function (matchId: string, move: IMove) {
 		if (matchId) {
 			const domain: IMove = {
-				playerId: move.playerId,
 				from: move.from,
 				to: move.to,
 				color: move.color,
@@ -158,7 +159,14 @@ gameNsp.on('connection', function (socket) {
 				piece: move.piece,
 				serverTime: new Date().toUTCString(),
 				time: move.time,
-				type: EventType.MoveEvent
+				type: EventType.MoveEvent,
+				gameOver: move.gameOver,
+				inCheck: move.inCheck,
+				inCheckmate: move.inCheck,
+				inDraw: move.inDraw,
+				inStalemate: move.inStalemate,
+				inThreefoldRepetition: move.inThreefoldRepetition,
+				insufficientMaterial: move.insufficientMaterial
 			}
 
 			db.MatchMoves.updateOne({ matchId: matchId },
@@ -170,13 +178,13 @@ gameNsp.on('connection', function (socket) {
 		}
 	});
 
-	socket.on(gameEvents.sendMesssage, function ({ matchId, chatMessage }) {
+	socket.on(gameEvents.sendMesssage, function (matchId: string, chatMessage: IMessage) {
 		if (matchId) {
 			const domain: IMessage = {
 				sender: chatMessage.sender,
 				serverTime: new Date().toUTCString(),
 				type: EventType.MoveEvent,
-				message: chatMessage.message				
+				message: chatMessage.message
 			}
 			db.MatchChat.updateOne({ matchId: matchId },
 				{ $push: { messages: domain } }, {}, (err, res) => {
