@@ -1,6 +1,5 @@
+
 export interface IEvent {
-	// id: string;
-	type: 'move' | 'message';
-	serverTime: number;
-	match: string;
+	type: number;
+	serverTime?: string;
 }
